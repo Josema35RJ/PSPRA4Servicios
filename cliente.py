@@ -32,36 +32,48 @@ class SftpClient:
                 files = self.connection.listdir()
                 for file in files:
                     print(file)
+        else:
+            print(Fore.RED + "No estás conectado al servidor." + Style.RESET_ALL)
 
     def create_directory(self):
         directory_name = input("Introduce el nombre del directorio que quieres crear: ")
         if self.connection is not None:
             self.connection.mkdir(directory_name)
             print(f"Directorio '{directory_name}' creado.")
+        else:
+            print(Fore.RED + "No estás conectado al servidor." + Style.RESET_ALL)
 
     def delete_directory(self):
         directory_name = input("Introduce el nombre del directorio que quieres eliminar: ")
         if self.connection is not None:
             self.connection.rmdir(directory_name)
             print(f"Directorio '{directory_name}' eliminado.")
+        else:
+            print(Fore.RED + "No estás conectado al servidor." + Style.RESET_ALL)
 
     def upload_file(self):
         file_name = input("Introduce el nombre del archivo que quieres subir: ")
         if self.connection is not None:
             self.connection.put(file_name)
             print(f"Archivo '{file_name}' subido.")
+        else:
+            print(Fore.RED + "No estás conectado al servidor." + Style.RESET_ALL)
 
     def download_file(self):
         file_name = input("Introduce el nombre del archivo que quieres descargar: ")
         if self.connection is not None:
             self.connection.get(file_name)
             print(f"Archivo '{file_name}' descargado.")
+        else:
+            print(Fore.RED + "No estás conectado al servidor." + Style.RESET_ALL)
 
     def delete_file(self):
         file_name = input("Introduce el nombre del archivo que quieres eliminar: ")
         if self.connection is not None:
             self.connection.remove(file_name)
             print(f"Archivo '{file_name}' eliminado.")
+        else:
+            print(Fore.RED + "No estás conectado al servidor." + Style.RESET_ALL)
 
     def show_menu(self):
         options = {
@@ -85,7 +97,19 @@ class SftpClient:
             if option in options:
                 if options[option]["func"] is not None:
                     options[option]
-                    if option == "7":
+                    if option == "1":
+                        self.list_files()
+                    elif option == "2":
+                        self.create_directory()
+                    elif option == "3":
+                        self.delete_directory()
+                    elif option == "4":
+                        self.upload_file()
+                    elif option == "5":
+                        self.download_file()
+                    elif option == "6":
+                        self.delete_file()
+                    elif option == "7":
                         break
                 else:
                     print(Fore.RED + "🚫 Esta opción aún no está implementada." + Style.RESET_ALL)
