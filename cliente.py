@@ -167,6 +167,15 @@ class SftpClient:
             # Crea una nueva ventana de Tkinter
             root = tk.Tk()
             root.title("Descargar archivo")
+            
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+
+                # Calcular las coordenadas para centrar la ventana
+            x = (screen_width - 600) // 2  # 600 es el ancho de la ventana
+            y = (screen_height - 400) // 2  # 400 es el alto de la ventana
+                # Establecer la geometría para centrar la ventana
+            root.geometry(f"600x400+{x}+{y}")
 
             # Crea un Treeview con barras de desplazamiento
             tree = ttk.Treeview(root)
