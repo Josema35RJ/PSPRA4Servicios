@@ -175,19 +175,33 @@ class SftpClient:
             # Añade los archivos al Treeview
             self.insert_files(tree, '.')
 
-            # Crea un botón "Descargar"
-            download_button = tk.Button(root, text="Descargar", command=lambda: self.get_file(tree.item(tree.selection())['values'][0]))
-            download_button.pack(side='right')
+            # Vincula la función get_file al evento de doble clic
+            tree.bind('<Double-1>', lambda event: self.get_file(tree.item(tree.selection())['values'][0], root))
 
             # Muestra la ventana
             root.mainloop()
         else:
             print(Fore.RED + "🚫 No estás conectado al servidor." + Style.RESET_ALL)
 
-    def get_file(self, path):
-        self.connection.get(path)
-        print(Fore.GREEN + f"⬇️ Archivo '{path}' descargado.")
+    def insert_files(self, tree, path):
+        for file in self.connection.listdir(path):
+            if not file.startswith('.') and not self.connection.isdir(file):  # Excluye los archivos privados y los directorios
+                tree.insert('', 'end', text=file, values=(path + '/' + file,))
 
+    def get_file(self, path, root):
+        if path:  # Verifica si la ruta del archivo seleccionado es válida
+            download_path = os.path.join(os.path.expanduser('~'), 'Downloads')  # Utiliza la carpeta de descargas del usuario
+            os.makedirs(download_path, exist_ok=True)  # Crea el directorio si no existe
+            if self.connection.isfile(path):  # Verifica si el path es un archivo en el servidor
+                # Muestra un mensaje de confirmación antes de descargar el archivo
+                if messagebox.askyesno("Confirmación", f"¿Estás seguro de que quieres descargar el archivo '{path}'?", parent=root):
+                    self.connection.get(path, os.path.join(download_path, os.path.basename(path)))
+                    print(Fore.GREEN + f"⬇️ Archivo '{path}' descargado en la carpeta de descargas.")
+            else:
+                print(Fore.RED + f"🚫 '{path}' no es un archivo válido en el servidor." + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "🚫 No se seleccionó ningún archivo." + Style.RESET_ALL)
+        
     def delete_file(self):
         if self.connection is not None:
             # Crear una nueva ventana de Tkinter
