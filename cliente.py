@@ -83,21 +83,53 @@ class SftpClient:
             # Crea una nueva ventana de Tkinter
             root = tk.Tk()
             root.title("Eliminar directorio")
+           
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight() # Calcular las coordenadas para centrar la ventana
+            
+            x = (screen_width - 600) // 2  # 600 es el ancho de la ventana
+            y = (screen_height - 400) // 2  # 400 es el alto de la ventana
 
-            # Crea un Treeview con barras de desplazamiento
-            tree = ttk.Treeview(root)
-            tree.pack(side='left', fill='both', expand=True)
+                # Establecer la geometría para centrar la ventana
+            root.geometry(f"600x400+{x}+{y}")
+            # Crea una lista con barras de desplazamiento
+            scrollbar = tk.Scrollbar(root)
+            scrollbar.pack(side='right', fill='y')
 
-            # Añade los directorios al Treeview
-            self.insert_directories(tree, '.')
+            listbox = tk.Listbox(root, yscrollcommand=scrollbar.set)
+            listbox.pack(side='left', fill='both', expand=True)
 
-            # Añade un evento de doble clic para eliminar directorios
-            tree.bind('<Double-1>', lambda e: self.remove_directory(tree.item(tree.selection())['values'][0]))
+            # Añade solo los directorios del servidor a la lista
+            for name in self.connection.listdir('.'):  # '.' representa el directorio actual en el servidor
+                if self.connection.isdir(name):
+                    listbox.insert(tk.END, name)
+
+            # Elimina el directorio al hacer doble clic en él
+            listbox.bind('<Double-1>', lambda event: self.remove_directory(listbox.get(listbox.curselection()[0]), root))
 
             # Muestra la ventana
             root.mainloop()
         else:
             print(Fore.RED + "🚫 No estás conectado al servidor." + Style.RESET_ALL)
+
+    def remove_directory(self, directory, root):
+        result = messagebox.askquestion("Eliminar", f"¿Estás seguro de que quieres eliminar el directorio '{directory}'?", icon='warning')
+        if result == 'yes':
+            try:
+                # Comprueba si el directorio está vacío
+                if len(self.connection.listdir(directory)) > 0:
+                    print(Fore.RED + f"🚫 El directorio '{directory}' no está vacío y no puede ser eliminado." + Style.RESET_ALL)
+                    return
+
+                # Ahora elimina el directorio
+                self.connection.rmdir(directory)
+                print(Fore.GREEN + f"📁 Directorio '{directory}' eliminado.")
+                root.destroy()  # Cierra la ventana actual
+                self.delete_directory()  # Abre una nueva ventana con la lista actualizada de directorios
+            except Exception as e:
+                print(Fore.RED + "🚫 Error al eliminar el directorio: " + str(e) + Style.RESET_ALL)
+        else:
+            print("Operación cancelada.")
 
     def insert_directories(self, tree, path, parent=''):
         with self.connection.cd(path):  # Cambia al directorio que quieras
@@ -108,35 +140,23 @@ class SftpClient:
                 id = tree.insert(parent, 'end', text=f"📁 {directory}", values=[path])
                 self.insert_directories(tree, directory, id)
 
-    def remove_directory(self, path):
-        result = messagebox.askquestion("Eliminar", f"¿Estás seguro de que quieres eliminar el directorio '{path}'?", icon='warning')
-        if result == 'yes':
-            self.connection.rmdir(path)
-            print(Fore.GREEN + f"📁 Directorio '{path}' eliminado.")
-        else:
-            print("Operación cancelada.")
 
     def upload_file(self):
-        if self.connection is not None:
-            # Crea una nueva ventana de Tkinter
-            root = tk.Tk()
-            root.title("Subir archivo")
+        root = tk.Tk()
 
-            # Crea un Treeview con barras de desplazamiento
-            tree = ttk.Treeview(root)
-            tree.pack(side='left', fill='both', expand=True)
-
-            # Añade los archivos al Treeview
-            self.insert_files(tree, '.')
-
-            # Crea un botón "Subir"
-            upload_button = tk.Button(root, text="Subir", command=lambda: self.put_file(tree.item(tree.selection())['values'][0]))
-            upload_button.pack(side='right')
-
-            # Muestra la ventana
-            root.mainloop()
+        file_path = filedialog.askopenfilename(parent=root)  # Abre el explorador de archivos y permite al usuario seleccionar un archivo
+        root.destroy()  # Cierra la ventana principal de tkinter
+        if file_path:
+            if self.connection is not None:
+                try:
+                    self.connection.put(file_path)
+                    print(f"Archivo '{file_path}' subido.")
+                except Exception as e:
+                    print(f"Error al subir el archivo: {e}")
+            else:
+                print("No estás conectado al servidor.")
         else:
-            print(Fore.RED + "🚫 No estás conectado al servidor." + Style.RESET_ALL)
+            print("No se seleccionó ningún archivo.")
 
     def put_file(self, path):
         self.connection.put(path)
@@ -169,13 +189,51 @@ class SftpClient:
         print(Fore.GREEN + f"⬇️ Archivo '{path}' descargado.")
 
     def delete_file(self):
-        file_name = input("Introduce el nombre del archivo que quieres eliminar: ")
         if self.connection is not None:
-            self.connection.remove(file_name)
-            print(Fore.GREEN + f"🗑️ Archivo '{file_name}' eliminado.")
+            # Crear una nueva ventana de Tkinter
+            root = tk.Tk()
+            root.title("Eliminar Fichero")
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+
+            x = (screen_width - 600) // 2  # 600 es el ancho de la ventana
+            y = (screen_height - 400) // 2  # 400 es el alto de la ventana
+
+            root.geometry(f"600x400+{x}+{y}")
+
+            # Crear una lista con barras de desplazamiento
+            scrollbar = tk.Scrollbar(root)
+            scrollbar.pack(side='right', fill='y')
+
+            listbox = tk.Listbox(root, yscrollcommand=scrollbar.set)
+            listbox.pack(side='left', fill='both', expand=True)
+
+            # Añadir solo los archivos del servidor a la lista
+            for name in self.connection.listdir('.'):  # '.' representa el directorio actual en el servidor
+                if self.connection.isfile(name) and not name.startswith('.'):
+                    listbox.insert(tk.END, name)
+
+            def delete_selected_file(event):
+                selected_index = listbox.curselection()
+                if selected_index:
+                    file_to_delete = listbox.get(selected_index[0])
+                    confirmation = messagebox.askyesno("Confirmar", f"¿Estás seguro de que quieres eliminar el fichero '{file_to_delete}'?")
+                    if confirmation:
+                        self.connection.remove(file_to_delete)
+                        listbox.delete(selected_index[0])
+                        root.destroy()  # Cerrar la ventana después de eliminar el archivo
+                        print(Fore.GREEN + f"🗑️  Archivo '{file_to_delete}' eliminado correctamente." + Style.RESET_ALL)
+            # Vincular la función delete_selected_file al evento de doble clic
+            listbox.bind('<Double-1>', delete_selected_file)
+
+            # Configurar la barra de desplazamiento para desplazar la lista
+            scrollbar.config(command=listbox.yview)
+
+            # Mostrar la ventana
+            root.mainloop()
         else:
             print(Fore.RED + "🚫 No estás conectado al servidor." + Style.RESET_ALL)
-
+            
     def show_menu(self):
         options = {
             "listar": {"info": "📂 Listar archivos en el servidor", "func": self.list_files},
