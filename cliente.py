@@ -5,14 +5,17 @@ from colorama import Fore, Style
 import pysftp
 
 class SftpClient:
-    def __init__(self, hostname='10.10.1.14', username='anakin', password='skywalker', port=22):
+    def __init__(self, hostname='10.10.1.14', port=22):
         self.hostname = hostname
-        self.username = username
-        self.password = password
         self.port = port
-        self.connection = None
+        self.username = None
+        self.password = None
+        self.connpiection = None
 
     def connect(self):
+        self.username = input("Introduce tu nombre de usuario: ")
+        self.password = input("Introduce tu contraseña: ")
+
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None  # Desactiva la comprobación de HostKey
         try:
@@ -29,7 +32,7 @@ class SftpClient:
             print(Fore.RED + f"🚫 No se pudo conectar al servidor: {err}" + Style.RESET_ALL)
             return False
 
-    def list_files(self, path='/home/anakin'):
+    def list_files(self, path='.'):
         if self.connection is not None:
             # Crea una nueva ventana de Tkinter
             root = tk.Tk()
@@ -66,7 +69,6 @@ class SftpClient:
                     id = tree.insert(parent, 'end', text=f"📁 {file}", values=[path])
                     self.insert_files_and_directories(tree, file, id)  # Recursivamente inserta los archivos/directorios dentro
                 else:  # Si es un archivo
-                    print(f"Insertando archivo: {file}")  # Mensaje de depuración
                     tree.insert(parent, 'end', text=f"📄 {file}", values=[path])
 
     def create_directory(self):
