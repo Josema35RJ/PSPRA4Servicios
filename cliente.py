@@ -262,13 +262,13 @@ class SftpClient:
             
     def show_menu(self):
         options = {
-            "listar": {"info": "📂 Listar archivos en el servidor", "func": self.list_files},
-            "crear": {"info": "📁 Crear un directorio en el servidor", "func": self.create_directory},
-            "eliminar": {"info": "❌ Eliminar un directorio en el servidor", "func": self.delete_directory},
-            "subir": {"info": "⬆️ Subir un archivo al servidor", "func": self.upload_file},
-            "descargar": {"info": "⬇️ Descargar un archivo del servidor", "func": self.download_file},
-            "borrar": {"info": "🗑️ Eliminar un archivo del servidor", "func": self.delete_file},
-            "desconectar": {"info": "🔌 Desconectar", "func": self.disconnect}
+            "1": {"info": "📂 Listar archivos en el servidor", "func": self.list_files},
+            "2": {"info": "📁 Crear un directorio en el servidor", "func": self.create_directory},
+            "3": {"info": "❌ Eliminar un directorio en el servidor", "func": self.delete_directory},
+            "4": {"info": "⬆️  Subir un archivo al servidor", "func": self.upload_file},
+            "5": {"info": "⬇️  Descargar un archivo del servidor", "func": self.download_file},
+            "6": {"info": "🗑️  Eliminar un archivo del servidor", "func": self.delete_file},
+            "7": {"info": "🔌 Desconectar", "func": self.disconnect}
         }
 
         while True:
@@ -281,19 +281,19 @@ class SftpClient:
             if option in options:
                 if options[option]["func"] is not None:
                     options[option]
-                    if option == "listar":
+                    if option == "1":
                         self.list_files()
-                    elif option == "crear":
+                    elif option == "2":
                         self.create_directory()
-                    elif option == "eliminar":
+                    elif option == "3":
                         self.delete_directory()
-                    elif option == "subir":
+                    elif option == "4":
                         self.upload_file()
-                    elif option == "descargar":
+                    elif option == "5":
                         self.download_file()
-                    elif option == "borrar":
+                    elif option == "6":
                         self.delete_file()
-                    elif option == "desconectar":
+                    elif option == "7":
                         break
                 else:
                     print(Fore.RED + "🚫 Esta opción aún no está implementada." + Style.RESET_ALL)
