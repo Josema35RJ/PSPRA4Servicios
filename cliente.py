@@ -144,6 +144,8 @@ class SftpClient:
                 print("No estás conectado al servidor.")
         else:
             print("No se seleccionó ningún archivo.")
+            
+        
 
     def put_file(self, path):
         self.connection.put(path)
