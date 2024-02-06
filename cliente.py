@@ -29,7 +29,7 @@ class SftpClient:
             print(Fore.RED + f"🚫 No se pudo conectar al servidor: {err}" + Style.RESET_ALL)
             return False
 
-    def list_files(self, path='.'):
+    def list_files(self, path='/home/anakin'):
         if self.connection is not None:
             # Crea una nueva ventana de Tkinter
             root = tk.Tk()
@@ -38,11 +38,11 @@ class SftpClient:
             screen_width = root.winfo_screenwidth()
             screen_height = root.winfo_screenheight()
 
-                # Calcular las coordenadas para centrar la ventana
+            # Calcular las coordenadas para centrar la ventana
             x = (screen_width - 600) // 2  # 600 es el ancho de la ventana
             y = (screen_height - 400) // 2  # 400 es el alto de la ventana
 
-                # Establecer la geometría para centrar la ventana
+            # Establecer la geometría para centrar la ventana
             root.geometry(f"600x400+{x}+{y}")
 
             # Crea un Treeview con barras de desplazamiento
@@ -50,25 +50,23 @@ class SftpClient:
             tree.pack(side='left', fill='both', expand=True)
 
             # Añade los directorios y archivos al Treeview
-            self.insert_files(tree, path)
+            self.insert_files_and_directories(tree, path)
 
             # Muestra la ventana
             root.mainloop()
         else:
             print(Fore.RED + "🚫 No estás conectado al servidor." + Style.RESET_ALL)
 
-    def insert_files(self, tree, path, parent=''):
+    def insert_files_and_directories(self, tree, path, parent=''):
         with self.connection.cd(path):  # Cambia al directorio que quieras
-            files = self.connection.listdir()
-            directories = [file for file in files if self.connection.isdir(file)]
-            files = [file for file in files if file not in directories]
-
-            for directory in directories:
-                id = tree.insert(parent, 'end', text=f"📁 {directory}", values=[path])
-                self.insert_files(tree, directory, id)
-
-            for file in files:
-                tree.insert(parent, 'end', text=f"📄 {file}", values=[path])
+            for file in self.connection.listdir():
+                if file.startswith('.'):  # Ignora los archivos y directorios privados
+                    continue
+                if self.connection.isdir(file):  # Si es un directorio
+                    id = tree.insert(parent, 'end', text=f"📁 {file}", values=[path])
+                    self.insert_files_and_directories(tree, file, id)  # Recursivamente inserta los archivos/directorios dentro
+                else:  # Si es un archivo
+                    tree.insert(parent, 'end', text=f"📄 {file}", values=[path])
 
     def create_directory(self):
         directory_name = input("Introduce el nombre del directorio que quieres crear: ")
@@ -254,6 +252,7 @@ class SftpClient:
 
             # Mostrar la ventana
             root.mainloop()
+            root.destroy()
         else:
             print(Fore.RED + "🚫 No estás conectado al servidor." + Style.RESET_ALL)
             
