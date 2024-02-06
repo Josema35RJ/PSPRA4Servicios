@@ -66,6 +66,7 @@ class SftpClient:
                     id = tree.insert(parent, 'end', text=f"📁 {file}", values=[path])
                     self.insert_files_and_directories(tree, file, id)  # Recursivamente inserta los archivos/directorios dentro
                 else:  # Si es un archivo
+                    print(f"Insertando archivo: {file}")  # Mensaje de depuración
                     tree.insert(parent, 'end', text=f"📄 {file}", values=[path])
 
     def create_directory(self):
@@ -81,7 +82,7 @@ class SftpClient:
             # Crea una nueva ventana de Tkinter
             root = tk.Tk()
             root.title("Eliminar directorio")
-           
+        
             screen_width = root.winfo_screenwidth()
             screen_height = root.winfo_screenheight() # Calcular las coordenadas para centrar la ventana
             
@@ -122,8 +123,8 @@ class SftpClient:
                 # Ahora elimina el directorio
                 self.connection.rmdir(directory)
                 print(Fore.GREEN + f"📁 Directorio '{directory}' eliminado.")
-                root.destroy()  # Cierra la ventana actual
-                self.delete_directory()  # Abre una nueva ventana con la lista actualizada de directorios
+                root.destroy() # Cierra la ventana actual
+                self.show_menu()  # Añadir esta línea para volver al menú principal
             except Exception as e:
                 print(Fore.RED + "🚫 Error al eliminar el directorio: " + str(e) + Style.RESET_ALL)
         else:
@@ -204,6 +205,7 @@ class SftpClient:
                 if messagebox.askyesno("Confirmación", f"¿Estás seguro de que quieres descargar el archivo '{path}'?", parent=root):
                     self.connection.get(path, os.path.join(download_path, os.path.basename(path)))
                     print(Fore.GREEN + f"⬇️ Archivo '{path}' descargado en la carpeta de descargas.")
+                    root.destroy()
             else:
                 print(Fore.RED + f"🚫 '{path}' no es un archivo válido en el servidor." + Style.RESET_ALL)
         else:
@@ -252,7 +254,7 @@ class SftpClient:
 
             # Mostrar la ventana
             root.mainloop()
-            root.destroy()
+            
         else:
             print(Fore.RED + "🚫 No estás conectado al servidor." + Style.RESET_ALL)
             
