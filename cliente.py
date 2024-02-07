@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from colorama import Fore, Style
 import pysftp
-
+ 
 class SftpClient:
     def __init__(self, hostname='10.10.1.14', port=22):
         self.hostname = hostname
@@ -13,24 +13,27 @@ class SftpClient:
         self.connpiection = None
 
     def connect(self):
-        self.username = input("Introduce tu nombre de usuario: ")
-        self.password = input("Introduce tu contraseña: ")
+            while True:
+                self.username = input("Introduce tu nombre de usuario: ")
+                self.password = input("Introduce tu contraseña: ")
 
-        cnopts = pysftp.CnOpts()
-        cnopts.hostkeys = None  
-        try:
-            self.connection = pysftp.Connection(
-                host=self.hostname,
-                username=self.username,
-                password=self.password,
-                port=self.port,
-                cnopts=cnopts
-            )
-            print(Fore.GREEN + f"🔌 Conectado a {self.hostname} como {self.username}." + Style.RESET_ALL)
-            return True
-        except Exception as err:
-            print(Fore.RED + f"🚫 No se pudo conectar al servidor: {err}" + Style.RESET_ALL)
-            return False
+                cnopts = pysftp.CnOpts()
+                cnopts.hostkeys = None  
+                try:
+                    self.connection = pysftp.Connection(
+                        host=self.hostname,
+                        username=self.username,
+                        password=self.password,
+                        port=self.port,
+                        cnopts=cnopts
+                    )
+                    print(Fore.GREEN + f"🔌 Conectado a {self.hostname} como {self.username}." + Style.RESET_ALL)
+                    return True
+                except Exception as err:
+                    print(Fore.RED + f"🚫 No se pudo conectar al servidor: {err}" + Style.RESET_ALL)
+                    retry = input("¿Quieres intentarlo de nuevo? (s/n): ")
+                    if retry.lower() != 's':
+                        return False
 
     def list_files(self, path='.'):
         if self.connection is not None:
@@ -127,10 +130,8 @@ class SftpClient:
                 id = tree.insert(parent, 'end', text=f"📁 {directory}", values=[path])
                 self.insert_directories(tree, directory, id)
 
-
     def upload_file(self):
         root = tk.Tk()
-
         file_path = filedialog.askopenfilename(parent=root)  
         root.destroy()  
         if file_path:
@@ -144,8 +145,6 @@ class SftpClient:
                 print("No estás conectado al servidor.")
         else:
             print("No se seleccionó ningún archivo.")
-            
-        
 
     def put_file(self, path):
         self.connection.put(path)
